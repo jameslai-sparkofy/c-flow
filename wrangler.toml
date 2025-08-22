@@ -1,0 +1,23 @@
+# Cloudflare Workers 配置文件
+name = "construction-management"
+compatibility_date = "2024-08-21"
+
+# Pages 配置
+[env.production]
+name = "construction-management"
+
+# 環境變數
+[vars]
+ENVIRONMENT = "production"
+
+# KV 命名空間 (用於存儲數據)
+[[kv_namespaces]]
+binding = "CONSTRUCTION_DB"
+id = "your-kv-namespace-id"
+preview_id = "your-preview-kv-namespace-id"
+
+# D1 數據庫 (推薦用於生產環境)
+[[d1_databases]]
+binding = "DB"
+database_name = "construction-management"
+database_id = "your-d1-database-id"

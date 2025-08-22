@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統包工程管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .feature {
+            padding: 30px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: transform 0.3s;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .feature h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .feature p {
+            color: #5d6d7e;
+            line-height: 1.6;
+        }
+        
+        .login-section {
+            background: #ecf0f1;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .login-form {
+            display: inline-block;
+            text-align: left;
+            width: 300px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+        
+        .status.error {
+            background: #fdf2f2;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+        
+        .system-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f6f3;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        
+        .info-item strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏗️</div>
+        <h1>統包工程管理系統</h1>
+        <p class="subtitle">專業的建築工程管理解決方案</p>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📋</div>
+                <h3>專案管理</h3>
+                <p>完整的專案生命週期管理，從規劃到完工的全程追蹤</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔧</div>
+                <h3>工序管理</h3>
+                <p>水電、泥作、木工、油漆、地板五大工程的精細化管理</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>甘特圖排程</h3>
+                <p>視覺化時程規劃，拖拽式操作，輕鬆調整工期</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">💰</div>
+                <h3>採購報價</h3>
+                <p>供應商管理、詢價比價、採購流程一站式解決</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📝</div>
+                <h3>合約工單</h3>
+                <p>電子合約、工單派發、現場回報無紙化作業</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">👷</div>
+                <h3>師父管理</h3>
+                <p>技能分類、工時記錄、績效評估的完整師父資料庫</p>
+            </div>
+        </div>
+        
+        <div class="login-section">
+            <h3>🔐 系統登入</h3>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">用戶名</label>
+                    <input type="text" id="username" name="username" value="admin" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密碼</label>
+                    <input type="password" id="password" name="password" value="admin123" required>
+                </div>
+                
+                <button type="submit" class="btn">登入系統</button>
+                
+                <div class="status" id="loginStatus"></div>
+            </form>
+        </div>
+        
+        <div class="system-info">
+            <h3>📋 系統資訊</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>系統狀態</strong><br>
+                    <span id="systemStatus">檢查中...</span>
+                </div>
+                <div class="info-item">
+                    <strong>資料庫</strong><br>
+                    <span id="dbStatus">檢查中...</span>
+                </div>
+                <div class="info-item">
+                    <strong>版本資訊</strong><br>
+                    v1.0.0
+                </div>
+                <div class="info-item">
+                    <strong>API端點</strong><br>
+                    <a href="/api/health" target="_blank">/api/health</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 檢查系統狀態
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    document.getElementById('systemStatus').innerHTML = '✅ 正常運行';
+                    document.getElementById('dbStatus').innerHTML = '✅ 連接正常';
+                } else {
+                    document.getElementById('systemStatus').innerHTML = '❌ 系統異常';
+                    document.getElementById('dbStatus').innerHTML = '❌ 連接失敗';
+                }
+            } catch (error) {
+                document.getElementById('systemStatus').innerHTML = '❌ 無法連接';
+                document.getElementById('dbStatus').innerHTML = '❌ 無法檢查';
+                console.error('系統狀態檢查失敗:', error);
+            }
+        }
+
+        // 登入處理
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const statusDiv = document.getElementById('loginStatus');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.innerHTML = '🔄 登入中...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ 登入成功！正在跳轉...';
+                    
+                    // 儲存 token
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    
+                    // 跳轉到甘特圖頁面
+                    setTimeout(() => {
+                        window.location.href = '/gantt.html';
+                    }, 1000);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = '❌ ' + data.message;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ 網路錯誤，請檢查系統狀態';
+                console.error('登入錯誤:', error);
+            }
+        });
+
+        // 頁面載入時檢查系統狀態
+        window.addEventListener('load', () => {
+            checkSystemStatus();
+            
+            // 每30秒檢查一次系統狀態
+            setInterval(checkSystemStatus, 30000);
+        });
+    </script>
+</body>
+</html>

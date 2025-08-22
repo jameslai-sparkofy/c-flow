@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # 後端 API 服務
+  backend:
+    build: .
+    container_name: construction-backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=your-super-secure-jwt-secret-change-this-in-production
+    networks:
+      - construction-network
+    restart: unless-stopped
+
+  # 前端 Web 服務
+  frontend:
+    image: nginx:alpine
+    container_name: construction-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - construction-network
+    restart: unless-stopped
+
+  # 資料庫備份服務
+  backup:
+    image: alpine:latest
+    container_name: construction-backup
+    volumes:
+      - ./data:/app/data
+      - ./backups:/app/backups
+    command: >
+      sh -c "
+        apk add --no-cache sqlite &&
+        while true; do
+          echo 'Starting database backup...' &&
+          sqlite3 /app/data/construction.db '.backup /app/backups/construction_backup_$(date +%Y%m%d_%H%M%S).db' &&
+          echo 'Backup completed.' &&
+          find /app/backups -name '*.db' -mtime +7 -delete &&
+          sleep 86400
+        done
+      "
+    networks:
+      - construction-network
+    restart: unless-stopped
+
+networks:
+  construction-network:
+    driver: bridge
+
+volumes:
+  data:
+  uploads:
+  backups:

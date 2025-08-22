@@ -1,0 +1,213 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create production directories
+      run: |
+        mkdir -p data uploads logs
+        mkdir -p dist
+
+    - name: Initialize database
+      run: node scripts/init-db.js
+
+    - name: Create admin user
+      run: node scripts/create-admin.js
+
+    - name: Build static files for frontend
+      run: |
+        # 複製所有前端文件到 dist 目錄
+        cp -r public/* dist/
+        cp construction-workflow-enhanced*.html dist/
+        
+        # 創建 package.json for Cloudflare Functions
+        cat > dist/package.json << 'EOF'
+        {
+          "name": "construction-management-api",
+          "version": "1.0.0",
+          "type": "module",
+          "dependencies": {
+            "bcryptjs": "^2.4.3",
+            "jsonwebtoken": "^9.0.2",
+            "joi": "^17.9.2"
+          }
+        }
+        EOF
+
+    - name: Create Cloudflare Functions
+      run: |
+        mkdir -p dist/functions/api
+        
+        # 創建 API 路由處理器
+        cat > dist/functions/api/[[path]].js << 'EOF'
+        // Cloudflare Pages Function for API routes
+        export async function onRequest(context) {
+          const { request, env } = context;
+          const url = new URL(request.url);
+          
+          // CORS headers
+          const corsHeaders = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          };
+          
+          // Handle CORS preflight
+          if (request.method === 'OPTIONS') {
+            return new Response(null, { headers: corsHeaders });
+          }
+          
+          // Health check
+          if (url.pathname === '/api/health') {
+            return new Response(JSON.stringify({
+              status: 'OK',
+              timestamp: new Date().toISOString(),
+              environment: 'Cloudflare Pages'
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
+          // Demo login endpoint
+          if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+            const body = await request.json();
+            
+            if (body.username === 'admin' && body.password === 'admin123') {
+              return new Response(JSON.stringify({
+                success: true,
+                message: '登入成功',
+                data: {
+                  token: 'demo-token-' + Date.now(),
+                  user: {
+                    id: 1,
+                    username: 'admin',
+                    email: 'admin@construction.com.tw',
+                    full_name: '系統管理員',
+                    role: 'admin'
+                  }
+                }
+              }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              });
+            }
+            
+            return new Response(JSON.stringify({
+              success: false,
+              message: '用戶名或密碼錯誤'
+            }), {
+              status: 401,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
+          // Demo data endpoints
+          if (url.pathname === '/api/projects') {
+            return new Response(JSON.stringify({
+              success: true,
+              data: {
+                projects: [
+                  {
+                    id: 1,
+                    name: '示範住宅專案',
+                    description: '三房兩廳住宅裝修',
+                    status: 'in_progress',
+                    task_count: 8,
+                    completed_tasks: 3
+                  }
+                ],
+                pagination: {
+                  current_page: 1,
+                  total_pages: 1,
+                  total_items: 1,
+                  items_per_page: 10
+                }
+              }
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
+          if (url.pathname === '/api/tasks') {
+            return new Response(JSON.stringify({
+              success: true,
+              data: {
+                tasks: [
+                  {
+                    id: 1,
+                    project_id: 1,
+                    name: '配電箱安裝',
+                    category: 'water-electric',
+                    category_name: '💧 水電工程',
+                    duration: 2,
+                    status: 'completed',
+                    estimated_cost: 15000,
+                    estimated_price: 22000
+                  },
+                  {
+                    id: 2,
+                    project_id: 1,
+                    name: '電路配線',
+                    category: 'water-electric',
+                    category_name: '💧 水電工程',
+                    duration: 3,
+                    status: 'in_progress',
+                    estimated_cost: 25000,
+                    estimated_price: 35000
+                  }
+                ]
+              }
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
+          if (url.pathname === '/api/dashboard') {
+            return new Response(JSON.stringify({
+              success: true,
+              data: {
+                projects: { total: 1, active: 1, completed: 0 },
+                tasks: { total: 8, completed: 3, in_progress: 2 },
+                customers: { total: 2, active: 2 },
+                masters: { total: 5, available: 3 }
+              }
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          
+          return new Response('API endpoint not found', { 
+            status: 404,
+            headers: corsHeaders
+          });
+        }
+        EOF
+
+    - name: Deploy to Cloudflare Pages
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: construction-management
+        directory: dist
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        wranglerVersion: '3'

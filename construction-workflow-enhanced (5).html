@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建築工地管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            margin: 0;
+        }
+        
+        .view-tabs {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .tab-btn.active:hover {
+            background: white;
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            height: calc(100vh - 70px);
+        }
+        
+        .sidebar {
+            background: white;
+            border-right: 2px solid #e9ecef;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .content-area {
+            background: white;
+            overflow: auto;
+            position: relative;
+        }
+        
+        .control-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .control-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+            font-size: 0.9em;
+        }
+        
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .task-item {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: move;
+            background: white;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            margin-bottom: 2px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .task-item:hover {
+            background: #f8f9fa;
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .task-item.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+        
+        .task-item.water-electric { border-left-color: #00b894; }
+        .task-item.masonry { border-left-color: #fd79a8; }
+        .task-item.carpentry { border-left-color: #fdcb6e; }
+        .task-item.painting { border-left-color: #74b9ff; }
+        .task-item.flooring { border-left-color: #a29bfe; }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+        
+        .task-details {
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-item h4 {
+            font-size: 1.1em;
+            margin-bottom: 2px;
+        }
+        
+        .stat-item p {
+            font-size: 0.75em;
+            opacity: 0.9;
+        }
+        
+        /* 視圖樣式 */
+        .view {
+            display: none;
+            padding: 20px;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* 甘特圖樣式 - 修改部分 */
+        .gantt-container {
+            position: relative;
+            overflow-x: auto;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        
+        .gantt-chart {
+            display: table;
+            min-width: 100%;
+            position: relative;
+        }
+        
+        .gantt-header {
+            display: table-row;
+            background: #34495e;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .gantt-lane-header {
+            display: table-cell;
+            width: 200px;
+            padding: 15px;
+            border-right: 1px solid #2c3e50;
+            text-align: center;
+            vertical-align: middle;
+            position: sticky;
+            left: 0;
+            background: #34495e;
+            z-index: 101;
+        }
+        
+        .gantt-timeline-header {
+            display: table-cell;
+            position: relative;
+        }
+        
+        .gantt-days-container {
+            display: flex;
+            position: relative;
+        }
+        
+        .gantt-day {
+            width: 40px;
+            min-width: 40px;
+            padding: 10px 5px;
+            border-right: 1px solid #2c3e50;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .gantt-day:hover {
+            opacity: 0.8;
+        }
+        
+        .gantt-day.weekend {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .gantt-day.holiday {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .gantt-day.today {
+            background: #f39c12;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .gantt-lane {
+            display: table-row;
+            position: relative;
+        }
+        
+        .gantt-lane-label {
+            display: table-cell;
+            width: 200px;
+            padding: 8px 10px;
+            border-right: 1px solid #bdc3c7;
+            border-bottom: 1px solid #bdc3c7;
+            background: #ecf0f1;
+            font-weight: bold;
+            font-size: 14px;
+            color: #2c3e50;
+            vertical-align: middle;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            writing-mode: horizontal-tb;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .gantt-lane-content {
+            display: table-cell;
+            position: relative;
+            height: 60px;
+            background: white;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        .gantt-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+        }
+        
+        .gantt-day-column {
+            width: 40px;
+            min-width: 40px;
+            border-right: 1px solid #ecf0f1;
+            height: 100%;
+        }
+        
+        .gantt-day-column.weekend {
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .gantt-day-column.holiday {
+            background: rgba(155, 89, 182, 0.1);
+        }
+        
+        .gantt-day-column.today {
+            background: rgba(243, 156, 18, 0.1);
+            border-right: 2px solid #f39c12;
+        }
+        
+        .gantt-task {
+            position: absolute;
+            top: 10px;
+            height: 40px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            cursor: move;
+            transition: opacity 0.3s, transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 20;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding: 0 8px;
+            user-select: none;
+        }
+        
+        .gantt-task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 30;
+        }
+        
+        .gantt-task.dragging {
+            opacity: 0.7;
+            z-index: 1000;
+            cursor: grabbing;
+        }
+        
+        .gantt-task.resizing {
+            cursor: ew-resize;
+        }
+        
+        /* 調整手柄 */
+        .gantt-task .resize-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            cursor: ew-resize;
+            z-index: 21;
+        }
+        
+        .gantt-task .resize-handle-left {
+            left: 0;
+            cursor: w-resize;
+        }
+        
+        .gantt-task .resize-handle-right {
+            right: 0;
+            cursor: e-resize;
+        }
+        
+        .gantt-task .resize-handle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 顏色主題 */
+        .water-electric { background: linear-gradient(135deg, #00b894, #00a085); }
+        .masonry { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        .carpentry { background: linear-gradient(135deg, #fdcb6e, #e17055); }
+        .painting { background: linear-gradient(135deg, #74b9ff, #0984e3); }
+        .flooring { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+        
+        /* 其他視圖樣式保持不變 */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .calendar-nav button {
+            padding: 8px 12px;
+            border: none;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .calendar-day {
+            background: white;
+            min-height: 120px;
+            padding: 8px;
+            position: relative;
+        }
+        
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #aaa;
+        }
+        
+        .calendar-day.weekend {
+            background: #fff5f5;
+        }
+        
+        .calendar-day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .calendar-task {
+            background: #3498db;
+            color: white;
+            padding: 2px 6px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .kanban-column {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 500px;
+        }
+        
+        .kanban-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+        
+        .kanban-header.water-electric { background: linear-gradient(135deg, #00b894, #00a085); }
+        .kanban-header.masonry { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        .kanban-header.carpentry { background: linear-gradient(135deg, #fdcb6e, #e17055); }
+        .kanban-header.painting { background: linear-gradient(135deg, #74b9ff, #0984e3); }
+        .kanban-header.flooring { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+        
+        .kanban-card {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #ddd;
+        }
+        
+        .kanban-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .kanban-card-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .kanban-card-details {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .kanban-card-financial {
+            font-size: 11px;
+            color: #555;
+            background: rgba(52, 152, 219, 0.1);
+            padding: 6px;
+            border-radius: 4px;
+        }
+        
+        .kanban-card-status {
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .status-indicator.planned { background: #f39c12; }
+        .status-indicator.inprogress { background: #3498db; }
+        .status-indicator.completed { background: #27ae60; }
+        .status-indicator.blocked { background: #e74c3c; }
+        
+        .list-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .list-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .list-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+        }
+        
+        .list-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .editable-cell {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .editable-cell:hover {
+            background: #e3f2fd;
+        }
+        
+        .editable-cell.editing {
+            padding: 0;
+        }
+        
+        .edit-input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .edit-select {
+            width: 100%;
+            padding: 4px 8px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .status-planned { background: #f39c12; color: white; }
+        .status-inprogress { background: #3498db; color: white; }
+        .status-completed { background: #27ae60; color: white; }
+        .status-blocked { background: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏗️ 建築工地管理系統</h1>
+        <div class="view-tabs">
+            <button class="tab-btn active" onclick="switchView('gantt', event)">🏊‍♂️ 甘特圖</button>
+            <button class="tab-btn" onclick="switchView('calendar', event)">📅 日曆</button>
+            <button class="tab-btn" onclick="switchView('kanban-category', event)">🏗️ 工程看板</button>
+            <button class="tab-btn" onclick="switchView('kanban-status', event)">📋 進度看板</button>
+            <button class="tab-btn" onclick="switchView('list', event)">📝 列表</button>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="control-section">
+                <h3>📅 專案設定</h3>
+                <div class="input-group">
+                    <label for="startDate">專案開始日期</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="input-group">
+                    <label>不排工日設定</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="skipSaturday"> 週六
+                        </label>
+                        <label>
+                            <input type="checkbox" id="skipSunday" checked> 週日
+                        </label>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="updateSchedule()">🔄 更新排程</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>➕ 新增工序</h3>
+                <div class="input-group">
+                    <label for="category">工程類別</label>
+                    <select id="category">
+                        <option value="water-electric">💧 水電工程</option>
+                        <option value="masonry">🧱 泥作工程</option>
+                        <option value="carpentry">🪵 木工工程</option>
+                        <option value="painting">🎨 油漆工程</option>
+                        <option value="flooring">🏠 地板工程</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="taskName">工序名稱</label>
+                    <input type="text" id="taskName" placeholder="輸入工序名稱">
+                </div>
+                <div class="input-group">
+                    <label for="duration">工作天數</label>
+                    <input type="number" id="duration" placeholder="天數" min="1" value="1">
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="cost">成本 (元)</label>
+                        <input type="number" id="cost" placeholder="成本" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="price">售價 (元)</label>
+                        <input type="number" id="price" placeholder="售價" min="0">
+                    </div>
+                </div>
+                <button class="btn" onclick="addTask()">➕ 新增工序</button>
+                <button class="btn btn-warning" onclick="generateTestData()">🧪 生成測試資料</button>
+                <button class="btn btn-danger" onclick="clearAll()">🗑️ 清空重置</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>📊 專案統計</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <h4 id="totalTasks">0</h4>
+                        <p>總工序數</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="totalCost">0</h4>
+                        <p>總成本</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="totalPrice">0</h4>
+                        <p>總售價</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="totalProfit">0</h4>
+                        <p>總利潤</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="totalDays">0</h4>
+                        <p>專案天數</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="projectEndDate">-</h4>
+                        <p>預計完工</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>🔄 工序順序 (可拖拉)</h3>
+                <div class="task-list" id="taskList">
+                    <p style="text-align: center; color: #7f8c8d; padding: 20px;">
+                        尚未新增工序<br>
+                        請先新增工序項目
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <!-- 甘特圖視圖 -->
+            <div class="view active" id="ganttView">
+                <div class="gantt-container">
+                    <div id="ganttChart">
+                        <div style="text-align: center; color: #7f8c8d; padding: 50px;">
+                            <h3>請設定專案開始日期並新增工序</h3>
+                            <p>系統將自動產生泳道甘特圖</p>
+                            <p style="margin-top: 10px; font-size: 14px;">
+                                提示：甘特圖中的工序條可以：<br>
+                                • 拖拽移動調整開始時間<br>
+                                • 拉動左右邊緣調整工期長度
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 日曆視圖 -->
+            <div class="view" id="calendarView">
+                <div class="calendar-header">
+                    <h2 id="calendarTitle">2025年8月</h2>
+                    <div class="calendar-nav">
+                        <button onclick="navigateCalendar(-1)">‹ 上月</button>
+                        <button onclick="navigateCalendar(0)">今天</button>
+                        <button onclick="navigateCalendar(1)">下月 ›</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- 日曆格子會動態生成 -->
+                </div>
+            </div>
+            
+            <!-- 工程分類看板視圖 -->
+            <div class="view" id="kanban-categoryView">
+                <div class="kanban-board" id="categoryKanbanBoard">
+                    <!-- 工程分類看板會動態生成 -->
+                </div>
+            </div>
+            
+            <!-- 進度狀態看板視圖 -->
+            <div class="view" id="kanban-statusView">
+                <div class="kanban-board">
+                    <div class="kanban-column">
+                        <div class="kanban-header">📋 計劃中</div>
+                        <div id="kanbanPlanned"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header">🔄 進行中</div>
+                        <div id="kanbanInProgress"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header">✅ 已完成</div>
+                        <div id="kanbanCompleted"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header">⚠️ 阻塞</div>
+                        <div id="kanbanBlocked"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 列表視圖 -->
+            <div class="view" id="listView">
+                <table class="list-table">
+                    <thead>
+                        <tr>
+                            <th>工序名稱</th>
+                            <th>工程類別</th>
+                            <th>天數</th>
+                            <th>成本</th>
+                            <th>售價</th>
+                            <th>利潤</th>
+                            <th>開始日期</th>
+                            <th>結束日期</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listTableBody">
+                        <!-- 列表資料會動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let tasks = [];
+        let taskIdCounter = 1;
+        let projectStartDate = null;
+        let skipSaturday = false;
+        let skipSunday = true;
+        let currentView = 'gantt';
+        let currentCalendarDate = new Date();
+        let customHolidays = new Set(); // 儲存自訂休息日
+        
+        // 工程類別設定
+        const categoryNames = {
+            'water-electric': '💧 水電工程',
+            'masonry': '🧱 泥作工程',
+            'carpentry': '🪵 木工工程',
+            'painting': '🎨 油漆工程',
+            'flooring': '🏠 地板工程'
+        };
+        
+        // 初始化
+        function init() {
+            document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+            updateStats();
+            renderCurrentView();
+        }
+        
+        // 新增工序
+        function addTask() {
+            const category = document.getElementById('category').value;
+            const taskName = document.getElementById('taskName').value.trim();
+            const duration = parseInt(document.getElementById('duration').value);
+            const cost = parseInt(document.getElementById('cost').value) || 0;
+            const price = parseInt(document.getElementById('price').value) || 0;
+            
+            if (!taskName || !duration) {
+                alert('請填寫工序名稱和工作天數');
+                return;
+            }
+            
+            const task = {
+                id: taskIdCounter++,
+                category: category,
+                name: taskName,
+                duration: duration,
+                cost: cost,
+                price: price,
+                profit: price - cost,
+                order: tasks.length,
+                startDate: null,
+                endDate: null,
+                status: 'planned',
+                manuallyAdjusted: false
+            };
+            
+            tasks.push(task);
+            renderTaskList();
+            updateSchedule();
+            clearInputs();
+        }
+        
+        // 生成測試資料
+        function generateTestData() {
+            if (tasks.length > 0 && !confirm('已有工序資料，確定要清空並生成測試資料嗎？')) {
+                return;
+            }
+            
+            tasks = [];
+            taskIdCounter = 1;
+            
+            const testTasks = [
+                { category: 'water-electric', name: '配電箱安裝', duration: 2, cost: 15000, price: 22000, status: 'completed' },
+                { category: 'water-electric', name: '電路配線', duration: 3, cost: 25000, price: 35000, status: 'completed' },
+                { category: 'water-electric', name: '給水管路配置', duration: 2, cost: 18000, price: 28000, status: 'in-progress' },
+                { category: 'masonry', name: '牆面打毛處理', duration: 1, cost: 12000, price: 18000, status: 'planned' },
+                { category: 'masonry', name: '水泥粉刷', duration: 4, cost: 32000, price: 48000, status: 'planned' },
+                { category: 'carpentry', name: '天花板骨架', duration: 3, cost: 22000, price: 35000, status: 'planned' },
+                { category: 'carpentry', name: '櫥櫃製作安裝', duration: 6, cost: 85000, price: 125000, status: 'planned' },
+                { category: 'painting', name: '牆面批土', duration: 2, cost: 16000, price: 24000, status: 'planned' },
+                { category: 'painting', name: '面漆塗刷', duration: 3, cost: 22000, price: 32000, status: 'planned' },
+                { category: 'flooring', name: '地面整平', duration: 2, cost: 20000, price: 30000, status: 'planned' },
+                { category: 'flooring', name: '超耐磨地板', duration: 4, cost: 65000, price: 95000, status: 'planned' }
+            ];
+            
+            testTasks.forEach((taskData, index) => {
+                const task = {
+                    id: taskIdCounter++,
+                    category: taskData.category,
+                    name: taskData.name,
+                    duration: taskData.duration,
+                    cost: taskData.cost,
+                    price: taskData.price,
+                    profit: taskData.price - taskData.cost,
+                    order: index,
+                    startDate: null,
+                    endDate: null,
+                    status: taskData.status,
+                    manuallyAdjusted: false
+                };
+                tasks.push(task);
+            });
+            
+            document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+            renderTaskList();
+            updateSchedule();
+            
+            alert(`🎉 成功生成 ${tasks.length} 筆測試資料！\n\n測試甘特圖拖拉功能：\n• 拖動工序條改變開始時間\n• 拉動邊緣調整工期\n• 系統會詢問是否連動調整後續工序`);
+        }
+        
+        // 清空輸入欄位
+        function clearInputs() {
+            document.getElementById('taskName').value = '';
+            document.getElementById('duration').value = '1';
+            document.getElementById('cost').value = '';
+            document.getElementById('price').value = '';
+        }
+        
+        // 清空所有
+        function clearAll() {
+            if (!confirm('確定要清空所有工序嗎？')) return;
+            
+            tasks = [];
+            taskIdCounter = 1;
+            renderTaskList();
+            updateSchedule();
+        }
+        
+        // 渲染工序列表
+        function renderTaskList() {
+            const container = document.getElementById('taskList');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <p style="text-align: center; color: #7f8c8d; padding: 20px;">
+                        尚未新增工序<br>請先新增工序項目
+                    </p>
+                `;
+                return;
+            }
+            
+            const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
+            
+            container.innerHTML = sortedTasks.map(task => `
+                <div class="task-item ${task.category}" draggable="true" data-task-id="${task.id}">
+                    <div class="task-info">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-details">
+                            ${categoryNames[task.category]} | ${task.duration}天 | 
+                            成本: NT$ ${task.cost.toLocaleString()} | 
+                            售價: NT$ ${task.price.toLocaleString()} | 
+                            利潤: NT$ ${task.profit.toLocaleString()}
+                            ${task.startDate ? `<br>${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}` : ''}
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="btn-small" onclick="deleteTask(${task.id})">刪除</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            addDragEvents();
+        }
+        
+        // 添加拖拉事件
+        function addDragEvents() {
+            const taskItems = document.querySelectorAll('.task-item');
+            
+            taskItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+                    e.target.classList.add('dragging');
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                });
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const draggedId = parseInt(e.dataTransfer.getData('text/plain'));
+                    const targetId = parseInt(e.target.closest('.task-item').dataset.taskId);
+                    
+                    if (draggedId !== targetId) {
+                        reorderTasks(draggedId, targetId);
+                    }
+                });
+            });
+        }
+        
+        // 重新排序工序
+        function reorderTasks(draggedId, targetId) {
+            const draggedTask = tasks.find(t => t.id === draggedId);
+            const targetTask = tasks.find(t => t.id === targetId);
+            
+            if (!draggedTask || !targetTask) return;
+            
+            const draggedOrder = draggedTask.order;
+            const targetOrder = targetTask.order;
+            
+            if (draggedOrder < targetOrder) {
+                tasks.forEach(task => {
+                    if (task.order > draggedOrder && task.order <= targetOrder) {
+                        task.order--;
+                    }
+                });
+                draggedTask.order = targetOrder;
+            } else {
+                tasks.forEach(task => {
+                    if (task.order >= targetOrder && task.order < draggedOrder) {
+                        task.order++;
+                    }
+                });
+                draggedTask.order = targetOrder;
+            }
+            
+            renderTaskList();
+            updateSchedule();
+        }
+        
+        // 刪除工序
+        function deleteTask(taskId) {
+            if (!confirm('確定要刪除此工序嗎？')) return;
+            
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex === -1) return;
+            
+            const deletedOrder = tasks[taskIndex].order;
+            tasks.splice(taskIndex, 1);
+            
+            tasks.forEach(task => {
+                if (task.order > deletedOrder) {
+                    task.order--;
+                }
+            });
+            
+            renderTaskList();
+            updateSchedule();
+        }
+        
+        // 更新排程
+        function updateSchedule() {
+            const startDateStr = document.getElementById('startDate').value;
+            skipSaturday = document.getElementById('skipSaturday').checked;
+            skipSunday = document.getElementById('skipSunday').checked;
+            
+            if (!startDateStr || tasks.length === 0) {
+                updateStats();
+                return;
+            }
+            
+            projectStartDate = new Date(startDateStr);
+            
+            // 使用新的重新計算函數
+            recalculateTaskSchedule();
+            
+            renderCurrentView();
+            renderTaskList();
+            updateStats();
+        }
+        
+        // 檢查是否為工作日
+        function isWorkingDay(date) {
+            const dayOfWeek = date.getDay();
+            const dateStr = date.toISOString().split('T')[0];
+            
+            // 檢查自訂假日
+            if (customHolidays.has(dateStr)) return false;
+            
+            // 檢查週末
+            if (skipSunday && dayOfWeek === 0) return false;
+            if (skipSaturday && dayOfWeek === 6) return false;
+            return true;
+        }
+        
+        // 切換日期的休息日狀態
+        function toggleHoliday(dateStr) {
+            if (customHolidays.has(dateStr)) {
+                customHolidays.delete(dateStr);
+            } else {
+                customHolidays.add(dateStr);
+            }
+            
+            // 重新計算所有未手動調整的工序
+            recalculateTaskSchedule();
+            
+            // 重新渲染
+            renderGanttChart();
+            renderTaskList();
+            updateStats();
+        }
+        
+        // 重新計算工序排程（考慮新的休息日）
+        function recalculateTaskSchedule() {
+            if (!projectStartDate || tasks.length === 0) return;
+            
+            const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
+            let currentDate = new Date(projectStartDate);
+            
+            // 確保從工作日開始
+            while (!isWorkingDay(currentDate)) {
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            sortedTasks.forEach(task => {
+                // 只重新計算未手動調整的工序
+                if (!task.manuallyAdjusted) {
+                    task.startDate = new Date(currentDate);
+                    
+                    let workDaysAdded = 0;
+                    let endDate = new Date(currentDate);
+                    
+                    // 計算結束日期，跳過所有休息日
+                    while (workDaysAdded < task.duration) {
+                        if (isWorkingDay(endDate)) {
+                            workDaysAdded++;
+                            if (workDaysAdded === task.duration) {
+                                break;
+                            }
+                        }
+                        endDate.setDate(endDate.getDate() + 1);
+                    }
+                    
+                    task.endDate = endDate;
+                    
+                    // 下一個工序從這個工序結束的隔天開始
+                    currentDate = new Date(endDate);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    
+                    // 確保下一個工序從工作日開始
+                    while (!isWorkingDay(currentDate)) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                } else {
+                    // 對於手動調整過的工序，也要重新計算結束日期（因為可能有新的休息日）
+                    let workDaysAdded = 0;
+                    let endDate = new Date(task.startDate);
+                    
+                    while (workDaysAdded < task.duration) {
+                        if (isWorkingDay(endDate)) {
+                            workDaysAdded++;
+                            if (workDaysAdded === task.duration) {
+                                break;
+                            }
+                        }
+                        endDate.setDate(endDate.getDate() + 1);
+                    }
+                    
+                    task.endDate = endDate;
+                    
+                    // 更新下一個工序的起始日期參考點
+                    currentDate = new Date(endDate);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    while (!isWorkingDay(currentDate)) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                }
+            });
+        }
+        
+        // 切換視圖
+        function switchView(view, event) {
+            currentView = view;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.view').forEach(viewElement => {
+                viewElement.classList.remove('active');
+            });
+            
+            const targetView = document.getElementById(view + 'View');
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+            
+            renderCurrentView();
+        }
+        
+        // 渲染當前視圖
+        function renderCurrentView() {
+            switch(currentView) {
+                case 'gantt':
+                    renderGanttChart();
+                    break;
+                case 'calendar':
+                    renderCalendar();
+                    break;
+                case 'kanban-category':
+                    renderCategoryKanban();
+                    break;
+                case 'kanban-status':
+                    renderStatusKanban();
+                    break;
+                case 'list':
+                    renderList();
+                    break;
+            }
+        }
+        
+        // 渲染甘特圖
+        function renderGanttChart() {
+            const container = document.getElementById('ganttChart');
+            
+            if (!projectStartDate || tasks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #7f8c8d; padding: 50px;">
+                        <h3>請設定專案開始日期並新增工序</h3>
+                        <p>系統將自動產生泳道甘特圖</p>
+                        <p style="margin-top: 10px; font-size: 14px;">
+                            提示：甘特圖中的工序條可以：<br>
+                            • 拖拽移動調整開始時間<br>
+                            • 拉動左右邊緣調整工期長度<br>
+                            • 點擊日期可設定為休息日（紫色）
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const sortedTasks = [...tasks].filter(t => t.startDate && t.endDate).sort((a, b) => a.order - b.order);
+            
+            if (sortedTasks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #e74c3c; padding: 50px;">
+                        <h3>排程計算中...</h3>
+                        <p>請稍候，正在計算工序排程</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const lastTask = sortedTasks[sortedTasks.length - 1];
+            const projectEndDate = lastTask.endDate;
+            
+            const totalDays = Math.ceil((projectEndDate - projectStartDate) / (1000 * 60 * 60 * 24)) + 1;
+            
+            const dates = [];
+            for (let i = 0; i < Math.min(totalDays + 10, 90); i++) {
+                const date = new Date(projectStartDate);
+                date.setDate(date.getDate() + i);
+                dates.push(date);
+            }
+            
+            const categories = [...new Set(sortedTasks.map(t => t.category))];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let html = '<div class="gantt-chart">';
+            
+            // 表頭
+            html += '<div class="gantt-header">';
+            html += '<div class="gantt-lane-header">工程類別</div>';
+            html += '<div class="gantt-timeline-header">';
+            html += '<div class="gantt-days-container">';
+            
+            dates.forEach(date => {
+                const dayOfWeek = date.getDay();
+                const dateStr = date.toISOString().split('T')[0];
+                const isWeekend = (skipSunday && dayOfWeek === 0) || (skipSaturday && dayOfWeek === 6);
+                const isHoliday = customHolidays.has(dateStr);
+                const isToday = date.getTime() === today.getTime();
+                
+                let cssClass = '';
+                if (isToday) cssClass = 'today';
+                else if (isHoliday) cssClass = 'holiday';
+                else if (isWeekend) cssClass = 'weekend';
+                
+                html += `<div class="gantt-day ${cssClass}" onclick="toggleHoliday('${dateStr}')" title="點擊設定/取消休息日">
+                    ${date.getDate()}<br>
+                    ${getWeekdayName(dayOfWeek)}
+                </div>`;
+            });
+            
+            html += '</div></div></div>';
+            
+            // 各工程類別泳道
+            categories.forEach(category => {
+                const categoryTasks = sortedTasks.filter(t => t.category === category);
+                
+                html += '<div class="gantt-lane">';
+                html += `<div class="gantt-lane-label">${categoryNames[category]}</div>`;
+                html += '<div class="gantt-lane-content">';
+                
+                // 背景網格
+                html += '<div class="gantt-grid">';
+                dates.forEach(date => {
+                    const dayOfWeek = date.getDay();
+                    const dateStr = date.toISOString().split('T')[0];
+                    const isWeekend = (skipSunday && dayOfWeek === 0) || (skipSaturday && dayOfWeek === 6);
+                    const isHoliday = customHolidays.has(dateStr);
+                    const isToday = date.getTime() === today.getTime();
+                    
+                    let cssClass = '';
+                    if (isToday) cssClass = 'today';
+                    else if (isHoliday) cssClass = 'holiday';
+                    else if (isWeekend) cssClass = 'weekend';
+                    
+                    html += `<div class="gantt-day-column ${cssClass}"></div>`;
+                });
+                html += '</div>';
+                
+                // 工序條 - 簡化版本，不使用分段
+                categoryTasks.forEach(task => {
+                    const startDay = Math.floor((task.startDate - projectStartDate) / (1000 * 60 * 60 * 24));
+                    const endDay = Math.floor((task.endDate - projectStartDate) / (1000 * 60 * 60 * 24));
+                    const duration = endDay - startDay + 1;
+                    
+                    if (startDay >= 0 && startDay < dates.length) {
+                        const width = Math.min(duration * 40, (dates.length - startDay) * 40);
+                        
+                        html += `<div class="gantt-task ${task.category}" 
+                            data-task-id="${task.id}"
+                            style="left: ${startDay * 40}px; width: ${width}px;" 
+                            title="${task.name}&#10;${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}&#10;${task.duration}天 | 成本: NT$ ${task.cost.toLocaleString()} | 售價: NT$ ${task.price.toLocaleString()}">
+                            <div class="resize-handle resize-handle-left"></div>
+                            <span>${task.name}</span>
+                            <div class="resize-handle resize-handle-right"></div>
+                        </div>`;
+                    }
+                });
+                
+                html += '</div></div>';
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // 綁定甘特圖拖拽事件
+            setTimeout(() => bindGanttDragEvents(), 100);
+        }
+        
+        // 綁定甘特圖拖拽和調整大小事件
+        function bindGanttDragEvents() {
+            const ganttTasks = document.querySelectorAll('.gantt-task');
+            
+            ganttTasks.forEach(taskElement => {
+                const taskId = parseInt(taskElement.dataset.taskId);
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+                
+                // 拖拽移動
+                taskElement.addEventListener('mousedown', (e) => {
+                    // 檢查是否點擊調整手柄
+                    if (e.target.classList.contains('resize-handle')) {
+                        handleResize(e, taskElement, task);
+                    } else {
+                        handleDrag(e, taskElement, task);
+                    }
+                });
+            });
+        }
+        
+        // 處理拖拽
+        function handleDrag(e, taskElement, task) {
+            e.preventDefault();
+            
+            const startX = e.clientX;
+            const startLeft = parseInt(taskElement.style.left);
+            const originalStartDate = new Date(task.startDate);
+            const lane = taskElement.parentElement;
+            
+            taskElement.classList.add('dragging');
+            
+            const handleMouseMove = (e) => {
+                const deltaX = e.clientX - startX;
+                const newLeft = startLeft + deltaX;
+                
+                // 限制在泳道內
+                const maxLeft = lane.offsetWidth - taskElement.offsetWidth;
+                const constrainedLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                
+                // 對齊到網格（40px）
+                const gridLeft = Math.round(constrainedLeft / 40) * 40;
+                
+                taskElement.style.left = gridLeft + 'px';
+            };
+            
+            const handleMouseUp = () => {
+                taskElement.classList.remove('dragging');
+                
+                // 計算新的開始日期
+                const newStartDay = Math.round(parseInt(taskElement.style.left) / 40);
+                const newStartDate = new Date(projectStartDate);
+                newStartDate.setDate(newStartDate.getDate() + newStartDay);
+                
+                // 檢查是否有實際移動
+                const daysDiff = Math.floor((newStartDate - originalStartDate) / (1000 * 60 * 60 * 24));
+                
+                if (daysDiff === 0) {
+                    // 沒有移動，不需要更新
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                    return;
+                }
+                
+                // 計算新的結束日期（保持原有工期）
+                let workDaysAdded = 0;
+                let newEndDate = new Date(newStartDate);
+                
+                while (workDaysAdded < task.duration) {
+                    if (isWorkingDay(newEndDate)) {
+                        workDaysAdded++;
+                        if (workDaysAdded === task.duration) {
+                            break;
+                        }
+                    }
+                    newEndDate.setDate(newEndDate.getDate() + 1);
+                }
+                
+                // 找出後續工序
+                const laterTasks = tasks.filter(t => 
+                    t.order > task.order && 
+                    t.startDate && 
+                    t.startDate >= originalStartDate
+                );
+                
+                // 詢問是否要調整後續工序
+                let adjustLaterTasks = false;
+                if (laterTasks.length > 0) {
+                    const message = daysDiff > 0 
+                        ? `此工序延後了 ${Math.abs(daysDiff)} 天，是否要連動調整後續 ${laterTasks.length} 個工序？\n\n` +
+                          `選擇「確定」：後續工序將順延 ${Math.abs(daysDiff)} 天\n` +
+                          `選擇「取消」：只調整此工序，後續工序保持不變`
+                        : `此工序提前了 ${Math.abs(daysDiff)} 天，是否要連動調整後續 ${laterTasks.length} 個工序？\n\n` +
+                          `選擇「確定」：後續工序將提前 ${Math.abs(daysDiff)} 天\n` +
+                          `選擇「取消」：只調整此工序，後續工序保持不變`;
+                    
+                    adjustLaterTasks = confirm(message);
+                }
+                
+                // 更新任務日期
+                task.startDate = newStartDate;
+                task.endDate = newEndDate;
+                task.manuallyAdjusted = true;
+                
+                // 如果需要調整後續工序
+                if (adjustLaterTasks) {
+                    laterTasks.forEach(laterTask => {
+                        const newLaterStart = new Date(laterTask.startDate);
+                        newLaterStart.setDate(newLaterStart.getDate() + daysDiff);
+                        
+                        const newLaterEnd = new Date(laterTask.endDate);
+                        newLaterEnd.setDate(newLaterEnd.getDate() + daysDiff);
+                        
+                        laterTask.startDate = newLaterStart;
+                        laterTask.endDate = newLaterEnd;
+                        laterTask.manuallyAdjusted = true;
+                    });
+                }
+                
+                // 重新渲染
+                renderGanttChart();
+                renderTaskList();
+                updateStats();
+                
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+        
+        // 處理調整大小
+        function handleResize(e, taskElement, task) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isLeftHandle = e.target.classList.contains('resize-handle-left');
+            const startX = e.clientX;
+            const startWidth = parseInt(taskElement.style.width);
+            const startLeft = parseInt(taskElement.style.left);
+            const originalDuration = task.duration;
+            const originalStartDate = new Date(task.startDate);
+            const originalEndDate = new Date(task.endDate);
+            
+            taskElement.classList.add('resizing');
+            
+            const handleMouseMove = (e) => {
+                const deltaX = e.clientX - startX;
+                
+                if (isLeftHandle) {
+                    // 調整左邊（開始日期）
+                    const newLeft = startLeft + deltaX;
+                    const newWidth = startWidth - deltaX;
+                    
+                    if (newWidth >= 40 && newLeft >= 0) {
+                        // 對齊到網格
+                        const gridLeft = Math.round(newLeft / 40) * 40;
+                        const gridWidth = Math.round(newWidth / 40) * 40;
+                        
+                        taskElement.style.left = gridLeft + 'px';
+                        taskElement.style.width = Math.max(40, gridWidth) + 'px';
+                    }
+                } else {
+                    // 調整右邊（結束日期）
+                    const newWidth = startWidth + deltaX;
+                    
+                    if (newWidth >= 40) {
+                        // 對齊到網格
+                        const gridWidth = Math.round(newWidth / 40) * 40;
+                        taskElement.style.width = Math.max(40, gridWidth) + 'px';
+                    }
+                }
+            };
+            
+            const handleMouseUp = () => {
+                taskElement.classList.remove('resizing');
+                
+                // 計算新的日期
+                const newStartDay = Math.round(parseInt(taskElement.style.left) / 40);
+                const newDuration = Math.round(parseInt(taskElement.style.width) / 40);
+                
+                // 檢查是否有實際變化
+                if (newDuration === originalDuration && newStartDay === Math.floor((originalStartDate - projectStartDate) / (1000 * 60 * 60 * 24))) {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                    return;
+                }
+                
+                const newStartDate = new Date(projectStartDate);
+                newStartDate.setDate(newStartDate.getDate() + newStartDay);
+                
+                // 計算新的結束日期
+                let workDaysAdded = 0;
+                let newEndDate = new Date(newStartDate);
+                
+                while (workDaysAdded < newDuration) {
+                    if (isWorkingDay(newEndDate)) {
+                        workDaysAdded++;
+                        if (workDaysAdded === newDuration) {
+                            break;
+                        }
+                    }
+                    newEndDate.setDate(newEndDate.getDate() + 1);
+                }
+                
+                // 計算變化量
+                const startDateDiff = Math.floor((newStartDate - originalStartDate) / (1000 * 60 * 60 * 24));
+                const endDateDiff = Math.floor((newEndDate - originalEndDate) / (1000 * 60 * 60 * 24));
+                const durationDiff = newDuration - originalDuration;
+                
+                // 找出後續工序
+                const laterTasks = tasks.filter(t => 
+                    t.order > task.order && 
+                    t.startDate && 
+                    t.startDate >= originalEndDate
+                );
+                
+                // 詢問是否要調整後續工序
+                let adjustLaterTasks = false;
+                if (laterTasks.length > 0 && endDateDiff !== 0) {
+                    let message = '';
+                    
+                    if (durationDiff !== 0) {
+                        message = durationDiff > 0 
+                            ? `此工序工期增加了 ${Math.abs(durationDiff)} 天（${originalDuration}天 → ${newDuration}天）。\n\n是否要將後續 ${laterTasks.length} 個工序順延 ${Math.abs(endDateDiff)} 天？`
+                            : `此工序工期減少了 ${Math.abs(durationDiff)} 天（${originalDuration}天 → ${newDuration}天）。\n\n是否要將後續 ${laterTasks.length} 個工序提前 ${Math.abs(endDateDiff)} 天？`;
+                    }
+                    
+                    if (message) {
+                        message += '\n\n選擇「確定」：後續工序將連動調整\n選擇「取消」：只調整此工序';
+                        adjustLaterTasks = confirm(message);
+                    }
+                }
+                
+                // 更新任務
+                task.startDate = newStartDate;
+                task.endDate = newEndDate;
+                task.duration = newDuration;
+                task.manuallyAdjusted = true;
+                
+                // 如果需要調整後續工序
+                if (adjustLaterTasks && endDateDiff !== 0) {
+                    laterTasks.forEach(laterTask => {
+                        const newLaterStart = new Date(laterTask.startDate);
+                        newLaterStart.setDate(newLaterStart.getDate() + endDateDiff);
+                        
+                        const newLaterEnd = new Date(laterTask.endDate);
+                        newLaterEnd.setDate(newLaterEnd.getDate() + endDateDiff);
+                        
+                        laterTask.startDate = newLaterStart;
+                        laterTask.endDate = newLaterEnd;
+                        laterTask.manuallyAdjusted = true;
+                    });
+                }
+                
+                // 重新渲染
+                renderGanttChart();
+                renderTaskList();
+                updateStats();
+                
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+        
+        // 渲染日曆
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            document.getElementById('calendarTitle').textContent = `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const firstDayWeekday = firstDay.getDay();
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            weekdays.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day';
+                dayHeader.style.background = '#2c3e50';
+                dayHeader.style.color = 'white';
+                dayHeader.style.fontWeight = 'bold';
+                dayHeader.style.textAlign = 'center';
+                dayHeader.style.padding = '10px';
+                dayHeader.style.minHeight = 'auto';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+            
+            for (let i = firstDayWeekday - 1; i >= 0; i--) {
+                const date = new Date(firstDay);
+                date.setDate(date.getDate() - i - 1);
+                const dayElement = createCalendarDay(date, true);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dayElement = createCalendarDay(date, false);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            const totalCells = calendarGrid.children.length;
+            const remainingCells = 42 - totalCells;
+            for (let day = 1; day <= remainingCells; day++) {
+                const date = new Date(year, month + 1, day);
+                const dayElement = createCalendarDay(date, true);
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+        
+        // 創建日曆日期元素
+        function createCalendarDay(date, isOtherMonth) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            
+            if (isOtherMonth) {
+                dayElement.classList.add('other-month');
+            }
+            
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                dayElement.classList.add('weekend');
+            }
+            
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'calendar-day-number';
+            dayNumber.textContent = date.getDate();
+            dayElement.appendChild(dayNumber);
+            
+            if (!isOtherMonth) {
+                const dayTasks = tasks.filter(task => {
+                    if (!task.startDate || !task.endDate) return false;
+                    const taskStart = new Date(task.startDate.getFullYear(), task.startDate.getMonth(), task.startDate.getDate());
+                    const taskEnd = new Date(task.endDate.getFullYear(), task.endDate.getMonth(), task.endDate.getDate());
+                    const currentDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                    return currentDay >= taskStart && currentDay <= taskEnd;
+                });
+                
+                dayTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `calendar-task ${task.category}`;
+                    taskElement.textContent = task.name;
+                    taskElement.title = `${task.name} - ${categoryNames[task.category]}`;
+                    dayElement.appendChild(taskElement);
+                });
+            }
+            
+            return dayElement;
+        }
+        
+        // 日曆導航
+        function navigateCalendar(direction) {
+            if (direction === 0) {
+                currentCalendarDate = new Date();
+            } else {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+            }
+            renderCalendar();
+        }
+        
+        // 渲染工程分類看板
+        function renderCategoryKanban() {
+            const board = document.getElementById('categoryKanbanBoard');
+            board.innerHTML = '';
+            
+            const categories = Object.keys(categoryNames);
+            
+            categories.forEach(category => {
+                const column = document.createElement('div');
+                column.className = 'kanban-column';
+                
+                const header = document.createElement('div');
+                header.className = `kanban-header ${category}`;
+                header.textContent = categoryNames[category];
+                column.appendChild(header);
+                
+                const content = document.createElement('div');
+                
+                const categoryTasks = tasks.filter(t => t.category === category).sort((a, b) => a.order - b.order);
+                
+                categoryTasks.forEach(task => {
+                    const card = createKanbanCard(task, false);
+                    content.appendChild(card);
+                });
+                
+                column.appendChild(content);
+                board.appendChild(column);
+            });
+        }
+        
+        // 渲染進度狀態看板
+        function renderStatusKanban() {
+            const columns = {
+                'planned': document.getElementById('kanbanPlanned'),
+                'in-progress': document.getElementById('kanbanInProgress'),
+                'completed': document.getElementById('kanbanCompleted'),
+                'blocked': document.getElementById('kanbanBlocked')
+            };
+            
+            Object.values(columns).forEach(column => column.innerHTML = '');
+            
+            tasks.forEach(task => {
+                const card = createKanbanCard(task, true);
+                card.onclick = () => changeTaskStatus(task.id);
+                
+                if (columns[task.status]) {
+                    columns[task.status].appendChild(card);
+                }
+            });
+        }
+        
+        // 創建看板卡片
+        function createKanbanCard(task, showStatusChange = false) {
+            const card = document.createElement('div');
+            card.className = 'kanban-card';
+            
+            const title = document.createElement('div');
+            title.className = 'kanban-card-title';
+            title.textContent = task.name;
+            card.appendChild(title);
+            
+            const details = document.createElement('div');
+            details.className = 'kanban-card-details';
+            details.innerHTML = `
+                ${categoryNames[task.category]} | ${task.duration}天<br>
+                ${task.startDate ? `${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}` : '尚未排程'}
+            `;
+            card.appendChild(details);
+            
+            const financial = document.createElement('div');
+            financial.className = 'kanban-card-financial';
+            financial.innerHTML = `
+                成本: NT$ ${task.cost.toLocaleString()}<br>
+                售價: NT$ ${task.price.toLocaleString()}<br>
+                <strong>利潤: NT$ ${task.profit.toLocaleString()}</strong>
+            `;
+            card.appendChild(financial);
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'kanban-card-status';
+            const statusSpan = document.createElement('span');
+            statusSpan.className = `status-indicator ${task.status.replace('-', '')}`;
+            statusSpan.textContent = getStatusText(task.status);
+            statusDiv.appendChild(statusSpan);
+            card.appendChild(statusDiv);
+            
+            if (showStatusChange) {
+                card.style.cursor = 'pointer';
+                card.title = '點擊切換狀態';
+            }
+            
+            return card;
+        }
+        
+        // 改變工序狀態
+        function changeTaskStatus(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const statuses = ['planned', 'in-progress', 'completed', 'blocked'];
+            const currentIndex = statuses.indexOf(task.status);
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            
+            task.status = statuses[nextIndex];
+            renderStatusKanban();
+        }
+        
+        // 渲染列表
+        function renderList() {
+            const tbody = document.getElementById('listTableBody');
+            tbody.innerHTML = '';
+            
+            const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
+            
+            sortedTasks.forEach(task => {
+                const row = document.createElement('tr');
+                row.dataset.taskId = task.id;
+                
+                const statusClass = `status-${task.status.replace('-', '')}`;
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="editable-cell" data-field="name" data-task-id="${task.id}">${task.name}</div>
+                    </td>
+                    <td>
+                        <div class="editable-cell" data-field="category" data-task-id="${task.id}">${categoryNames[task.category]}</div>
+                    </td>
+                    <td>
+                        <div class="editable-cell" data-field="duration" data-task-id="${task.id}">${task.duration}天</div>
+                    </td>
+                    <td>
+                        <div class="editable-cell" data-field="cost" data-task-id="${task.id}">NT$ ${task.cost.toLocaleString()}</div>
+                    </td>
+                    <td>
+                        <div class="editable-cell" data-field="price" data-task-id="${task.id}">NT$ ${task.price.toLocaleString()}</div>
+                    </td>
+                    <td style="color: ${task.profit >= 0 ? '#27ae60' : '#e74c3c'};">
+                        NT$ ${task.profit.toLocaleString()}
+                    </td>
+                    <td>
+                        <div class="editable-cell" data-field="startDate" data-task-id="${task.id}">
+                            ${task.startDate ? task.startDate.toISOString().split('T')[0] : '-'}
+                        </div>
+                    </td>
+                    <td>${task.endDate ? task.endDate.toISOString().split('T')[0] : '-'}</td>
+                    <td>
+                        <span class="status-badge ${statusClass}" data-field="status" data-task-id="${task.id}">
+                            ${getStatusText(task.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-small" onclick="deleteTask(${task.id})">刪除</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // 綁定編輯事件
+            bindEditableEvents();
+        }
+        
+        // 綁定可編輯單元格的事件
+        function bindEditableEvents() {
+            // 綁定可編輯單元格
+            document.querySelectorAll('.editable-cell').forEach(cell => {
+                cell.addEventListener('click', handleCellEdit);
+            });
+            
+            // 綁定狀態標籤
+            document.querySelectorAll('.status-badge').forEach(badge => {
+                badge.addEventListener('click', handleStatusEdit);
+            });
+        }
+        
+        // 處理單元格編輯
+        function handleCellEdit(e) {
+            const cell = e.target;
+            if (cell.classList.contains('editing')) return;
+            
+            const taskId = parseInt(cell.dataset.taskId);
+            const field = cell.dataset.field;
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            cell.classList.add('editing');
+            const originalValue = task[field];
+            let inputElement;
+            
+            switch(field) {
+                case 'name':
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'text';
+                    inputElement.value = originalValue;
+                    inputElement.className = 'edit-input';
+                    break;
+                    
+                case 'category':
+                    inputElement = document.createElement('select');
+                    inputElement.className = 'edit-select';
+                    Object.keys(categoryNames).forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat;
+                        option.textContent = categoryNames[cat];
+                        if (cat === task.category) option.selected = true;
+                        inputElement.appendChild(option);
+                    });
+                    break;
+                    
+                case 'duration':
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'number';
+                    inputElement.value = originalValue;
+                    inputElement.min = '1';
+                    inputElement.className = 'edit-input';
+                    break;
+                    
+                case 'cost':
+                case 'price':
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'number';
+                    inputElement.value = originalValue;
+                    inputElement.min = '0';
+                    inputElement.className = 'edit-input';
+                    break;
+                    
+                case 'startDate':
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'date';
+                    inputElement.value = originalValue ? originalValue.toISOString().split('T')[0] : '';
+                    inputElement.className = 'edit-input';
+                    break;
+                    
+                default:
+                    return;
+            }
+            
+            cell.innerHTML = '';
+            cell.appendChild(inputElement);
+            inputElement.focus();
+            inputElement.select();
+            
+            // 儲存編輯
+            const saveEdit = () => {
+                let newValue = inputElement.value;
+                let needsScheduleUpdate = false;
+                
+                switch(field) {
+                    case 'name':
+                        if (newValue.trim()) {
+                            task.name = newValue.trim();
+                        }
+                        break;
+                        
+                    case 'category':
+                        task.category = newValue;
+                        break;
+                        
+                    case 'duration':
+                        const duration = parseInt(newValue);
+                        if (duration > 0 && duration !== task.duration) {
+                            const originalDuration = task.duration;
+                            task.duration = duration;
+                            task.manuallyAdjusted = true;
+                            needsScheduleUpdate = true;
+                            
+                            // 詢問是否調整後續工序
+                            const laterTasks = tasks.filter(t => t.order > task.order);
+                            if (laterTasks.length > 0) {
+                                const durationDiff = duration - originalDuration;
+                                const message = durationDiff > 0 
+                                    ? `工期增加了 ${Math.abs(durationDiff)} 天，是否要將後續 ${laterTasks.length} 個工序順延？`
+                                    : `工期減少了 ${Math.abs(durationDiff)} 天，是否要將後續 ${laterTasks.length} 個工序提前？`;
+                                
+                                if (confirm(message)) {
+                                    // 重新計算所有工序
+                                    recalculateTaskSchedule();
+                                } else {
+                                    // 只重新計算當前工序的結束日期
+                                    recalculateSingleTask(task);
+                                }
+                            } else {
+                                // 沒有後續工序，只重新計算當前工序
+                                recalculateSingleTask(task);
+                            }
+                        }
+                        break;
+                        
+                    case 'cost':
+                    case 'price':
+                        const value = parseInt(newValue) || 0;
+                        task[field] = value;
+                        task.profit = task.price - task.cost;
+                        break;
+                        
+                    case 'startDate':
+                        if (newValue) {
+                            const newStartDate = new Date(newValue);
+                            const originalStartDate = task.startDate ? new Date(task.startDate) : null;
+                            
+                            if (!originalStartDate || newStartDate.getTime() !== originalStartDate.getTime()) {
+                                task.startDate = newStartDate;
+                                task.manuallyAdjusted = true;
+                                needsScheduleUpdate = true;
+                                
+                                // 詢問是否調整後續工序
+                                const laterTasks = tasks.filter(t => t.order > task.order);
+                                if (laterTasks.length > 0) {
+                                    if (confirm(`開始日期已變更，是否要連動調整後續 ${laterTasks.length} 個工序？`)) {
+                                        // 重新計算所有工序
+                                        recalculateTaskSchedule();
+                                    } else {
+                                        // 只重新計算當前工序
+                                        recalculateSingleTask(task);
+                                    }
+                                } else {
+                                    // 沒有後續工序，只重新計算當前工序
+                                    recalculateSingleTask(task);
+                                }
+                            }
+                        }
+                        break;
+                }
+                
+                // 重新渲染所有視圖
+                renderList();
+                renderTaskList();
+                renderGanttChart();
+                if (currentView === 'calendar') renderCalendar();
+                if (currentView === 'kanban-category') renderCategoryKanban();
+                if (currentView === 'kanban-status') renderStatusKanban();
+                updateStats();
+            };
+            
+            // 取消編輯
+            const cancelEdit = () => {
+                cell.classList.remove('editing');
+                renderList();
+            };
+            
+            // 綁定事件
+            inputElement.addEventListener('blur', saveEdit);
+            inputElement.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelEdit();
+                }
+            });
+        }
+        
+        // 重新計算單一工序（考慮休息日）
+        function recalculateSingleTask(task) {
+            if (!task.startDate) return;
+            
+            let workDaysAdded = 0;
+            let endDate = new Date(task.startDate);
+            
+            // 確保從工作日開始
+            if (!isWorkingDay(endDate)) {
+                while (!isWorkingDay(endDate)) {
+                    endDate.setDate(endDate.getDate() + 1);
+                }
+                task.startDate = new Date(endDate);
+            }
+            
+            // 計算結束日期，跳過所有休息日
+            workDaysAdded = 0;
+            endDate = new Date(task.startDate);
+            
+            while (workDaysAdded < task.duration) {
+                if (isWorkingDay(endDate)) {
+                    workDaysAdded++;
+                    if (workDaysAdded === task.duration) {
+                        break;
+                    }
+                }
+                endDate.setDate(endDate.getDate() + 1);
+            }
+            
+            task.endDate = endDate;
+        }
+        
+        // 處理狀態編輯
+        function handleStatusEdit(e) {
+            const badge = e.target;
+            const taskId = parseInt(badge.dataset.taskId);
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const statuses = ['planned', 'in-progress', 'completed', 'blocked'];
+            const currentIndex = statuses.indexOf(task.status);
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            
+            task.status = statuses[nextIndex];
+            renderList();
+            renderCurrentView();
+        }
+        
+        // 獲取狀態文字
+        function getStatusText(status) {
+            const statusMap = {
+                'planned': '計劃中',
+                'in-progress': '進行中',
+                'completed': '已完成',
+                'blocked': '阻塞'
+            };
+            return statusMap[status] || status;
+        }
+        
+        // 獲取星期名稱
+        function getWeekdayName(dayOfWeek) {
+            const names = ['日', '一', '二', '三', '四', '五', '六'];
+            return names[dayOfWeek];
+        }
+        
+        // 格式化日期
+        function formatDate(date) {
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+        
+        // 更新統計資訊
+        function updateStats() {
+            const totalTasks = tasks.length;
+            const totalCost = tasks.reduce((sum, task) => sum + task.cost, 0);
+            const totalPrice = tasks.reduce((sum, task) => sum + task.price, 0);
+            const totalProfit = totalPrice - totalCost;
+            let totalDays = 0;
+            let endDate = '-';
+            
+            if (tasks.length > 0 && projectStartDate) {
+                const sortedTasks = [...tasks].sort((a, b) => a.order - b.order);
+                const lastTask = sortedTasks[sortedTasks.length - 1];
+                
+                if (lastTask && lastTask.endDate) {
+                    totalDays = Math.ceil((lastTask.endDate - projectStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                    endDate = `${lastTask.endDate.getMonth() + 1}/${lastTask.endDate.getDate()}`;
+                }
+            }
+            
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('totalCost').textContent = 'NT$ ' + totalCost.toLocaleString();
+            document.getElementById('totalPrice').textContent = 'NT$ ' + totalPrice.toLocaleString();
+            document.getElementById('totalProfit').textContent = 'NT$ ' + totalProfit.toLocaleString();
+            document.getElementById('totalDays').textContent = totalDays;
+            document.getElementById('projectEndDate').textContent = endDate;
+        }
+        
+        // 事件監聽
+        document.getElementById('startDate').addEventListener('change', updateSchedule);
+        document.getElementById('skipSaturday').addEventListener('change', updateSchedule);
+        document.getElementById('skipSunday').addEventListener('change', updateSchedule);
+        
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
