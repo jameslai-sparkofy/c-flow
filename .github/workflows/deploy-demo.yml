@@ -1,0 +1,195 @@
+name: Deploy Demo to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy-demo:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create demo build
+      run: |
+        mkdir -p demo
+        
+        # 複製前端文件
+        cp -r public/* demo/
+        cp "construction-workflow-enhanced (5).html" demo/gantt-original.html
+        
+        # 創建演示版本的 index.html，移除 API 依賴
+        cat > demo/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="zh-TW">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>C-Flow 統包工程管理系統 - 演示版本</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .container {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 15px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+                    width: 90%;
+                    max-width: 1200px;
+                    text-align: center;
+                }
+                .logo { font-size: 3em; margin-bottom: 20px; }
+                h1 { color: #2c3e50; margin-bottom: 10px; font-size: 2.5em; }
+                .subtitle { color: #7f8c8d; margin-bottom: 40px; font-size: 1.2em; }
+                .features {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 30px;
+                    margin-bottom: 40px;
+                }
+                .feature {
+                    padding: 30px;
+                    border-radius: 10px;
+                    background: #f8f9fa;
+                    transition: transform 0.3s;
+                }
+                .feature:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                }
+                .feature-icon { font-size: 3em; margin-bottom: 15px; }
+                .feature h3 { color: #2c3e50; margin-bottom: 10px; }
+                .feature p { color: #5d6d7e; line-height: 1.6; }
+                .demo-section {
+                    background: #e3f2fd;
+                    padding: 30px;
+                    border-radius: 10px;
+                    margin-top: 30px;
+                }
+                .btn {
+                    display: inline-block;
+                    background: linear-gradient(135deg, #3498db, #2980b9);
+                    color: white;
+                    padding: 15px 30px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    margin: 10px;
+                    font-weight: bold;
+                    transition: transform 0.3s;
+                }
+                .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+                }
+                .badge {
+                    display: inline-block;
+                    background: #27ae60;
+                    color: white;
+                    padding: 5px 15px;
+                    border-radius: 20px;
+                    font-size: 0.9em;
+                    margin: 5px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="logo">🏗️</div>
+                <h1>C-Flow 統包工程管理系統</h1>
+                <p class="subtitle">專業的建築工程管理解決方案 - 演示版本</p>
+                
+                <div class="badge">✅ GitHub Actions 自動部署</div>
+                <div class="badge">🌐 在線演示系統</div>
+                <div class="badge">📱 響應式設計</div>
+                
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">📋</div>
+                        <h3>專案管理</h3>
+                        <p>完整的專案生命週期管理，從規劃到完工的全程追蹤</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <h3>甘特圖排程</h3>
+                        <p>視覺化時程規劃，拖拽式操作，輕鬆調整工期</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">💰</div>
+                        <h3>採購報價</h3>
+                        <p>供應商管理、詢價比價、採購流程一站式解決</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">📝</div>
+                        <h3>合約工單</h3>
+                        <p>電子合約、工單派發、現場回報無紙化作業</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">👷</div>
+                        <h3>師父管理</h3>
+                        <p>技能分類、工時記錄、績效評估的完整師父資料庫</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">🔧</div>
+                        <h3>工序管理</h3>
+                        <p>水電、泥作、木工、油漆、地板五大工程的精細化管理</p>
+                    </div>
+                </div>
+                
+                <div class="demo-section">
+                    <h3>🎯 立即體驗功能演示</h3>
+                    <p>點擊下方按鈕體驗完整的甘特圖管理功能</p>
+                    <br>
+                    <a href="gantt-original.html" class="btn">🏊‍♂️ 甘特圖演示</a>
+                    <a href="gantt.html" class="btn">📱 手機版界面</a>
+                    <a href="https://github.com/jameslai-sparkofy/c-flow" class="btn">📂 GitHub 原始碼</a>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h4>🚀 技術架構</h4>
+                    <p>Node.js + Express + SQLite + GitHub Actions + 自動部署</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        EOF
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './demo'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
